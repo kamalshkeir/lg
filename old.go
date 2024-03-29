@@ -33,7 +33,6 @@ func Printfs(pattern string, anything ...interface{}) {
 		colorCode = "35"
 	default:
 		colorUsed = false
-		colorCode = "34"
 	}
 	if colorUsed {
 		pattern = pattern[2:]
@@ -45,13 +44,15 @@ func Printfs(pattern string, anything ...interface{}) {
 			"log": msg,
 		})
 	}
-	colorfulLogMessage := "\033[1;" + colorCode + "m" + msg + "\033[0m"
-	fmt.Fprint(loggerFS.Writer(), colorfulLogMessage)
+	if colorUsed {
+		msg = "\033[1;" + colorCode + "m" + msg + "\033[0m"
+	}
+	fmt.Fprint(loggerFS.Writer(), msg)
 }
 
 // Printf takes pattern(rd,gr,yl,bl,mg), varsString, varsValues and prints the formatted log message
 func Printf(pattern string, anything ...interface{}) {
-	pf := "[INFO]"
+	pf := ""
 	var colorCode string
 	var colorUsed = true
 
@@ -72,9 +73,7 @@ func Printf(pattern string, anything ...interface{}) {
 		colorCode = "35"
 		pf = "[DEBUG]"
 	default:
-		pf = "[INFO]"
 		colorUsed = false
-		colorCode = "34"
 	}
 
 	if colorUsed {
@@ -89,8 +88,11 @@ func Printf(pattern string, anything ...interface{}) {
 			"log": msg,
 		})
 	}
-	colorfulLogMessage := "\033[1;" + colorCode + "m" + msg + "\033[0m"
-	fmt.Fprint(loggerFS.Writer(), colorfulLogMessage)
+	if colorUsed {
+		msg = "\033[1;" + colorCode + "m" + msg + "\033[0m"
+	}
+
+	fmt.Fprint(loggerFS.Writer(), msg)
 }
 
 // formatCaller formats the caller information as desired
