@@ -65,7 +65,7 @@ func (l *Logger) Log(level Level, msg any, keyvals ...any) {
 	var frame runtime.Frame
 	if l.reportCaller {
 		// Skip log.log, the caller, and any offset added.
-		frames := l.frames(l.callerOffset + 2)
+		frames := l.frames(l.callerOffset + 3)
 		for {
 			f, more := frames.Next()
 			_, helper := l.helpers.Load(f.Function)
@@ -91,7 +91,7 @@ func (l *Logger) LogC(level Level, msg any, keyvals ...any) {
 	}
 
 	var frame runtime.Frame
-	frames := l.frames(l.callerOffset + 2)
+	frames := l.frames(l.callerOffset + 3)
 	for {
 		f, more := frames.Next()
 		_, helper := l.helpers.Load(f.Function)
