@@ -59,6 +59,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 	lenKeyvals := len(keyvals)
 	pubMessage := ""
 	args := make([]any, 0, len(keyvals)/2)
+	defer l.b.Reset()
 	for i := 0; i < lenKeyvals; i += 2 {
 		firstKey := i == 0
 		switch keyvals[i] {
@@ -152,7 +153,6 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			"log": pubMessage,
 		})
 	}
-	defer l.b.Reset()
 	_, err := fmt.Fprintf(l.w, l.b.String()+"\n", args...)
 	l.CheckError(err)
 }
