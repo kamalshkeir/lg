@@ -8,14 +8,9 @@ import (
 	"os"
 	"sync"
 	"time"
-
-	"github.com/muesli/termenv"
 )
 
 var (
-	// registry is a map of all registered lipgloss renderers.
-	registry = sync.Map{}
-
 	// defaultLogger is the default global logger instance.
 	defaultLoggerOnce sync.Once
 	defaultLogger     *Logger
@@ -28,7 +23,7 @@ func Default() *Logger {
 			// already set via SetDefault.
 			return
 		}
-		defaultLogger = NewWithOptions(os.Stderr, Options{ReportTimestamp: true})
+		defaultLogger = NewWithOptions(os.Stderr, Options{ReportTimestamp: true, isdef: true})
 	})
 	return defaultLogger
 }
@@ -63,7 +58,6 @@ func NewWithOptions(w io.Writer, o Options) *Logger {
 
 	l.SetOutput(w)
 	l.SetLevel(Level(l.level))
-	l.SetStyles(DefaultStyles())
 
 	if l.callerFormatter == nil {
 		l.callerFormatter = ShortCallerFormatter
@@ -135,25 +129,9 @@ func SetPrefix(prefix string) {
 	Default().SetPrefix(prefix)
 }
 
-// SetColorProfile force sets the underlying Lip Gloss renderer color profile
-// for the TextFormatter.
-func SetColorProfile(profile termenv.Profile) {
-	Default().SetColorProfile(profile)
-}
-
-// SetStyles sets the logger styles for the TextFormatter.
-func SetStyles(s *Styles) {
-	Default().SetStyles(s)
-}
-
 // GetPrefix returns the prefix for the default logger.
 func GetPrefix() string {
 	return Default().GetPrefix()
-}
-
-// With returns a new logger with the given keyvals.
-func With(keyvals ...any) *Logger {
-	return Default().With(keyvals...)
 }
 
 // WithPrefix returns a new logger with the given prefix.
@@ -168,50 +146,50 @@ func Helper() {
 	Default().helper(1)
 }
 
-// Log logs a message with the given level.
-func Log(level Level, msg any, keyvals ...any) {
-	Default().Log(level, msg, keyvals...)
+// llog logs a message with the given level.
+func llog(pkgCall bool, level Level, msg any, keyvals ...any) {
+	Default().log(pkgCall, level, msg, keyvals...)
 }
 
-func LogC(level Level, msg any, keyvals ...any) {
-	Default().LogC(level, msg, keyvals...)
+func logC(pkgCall bool, level Level, msg any, keyvals ...any) {
+	Default().logC(pkgCall, level, msg, keyvals...)
 }
 
 // Debug logs a debug message.
 func Debug(msg any, keyvals ...any) {
-	Log(DebugLevel, msg, keyvals...)
+	llog(true, DebugLevel, msg, keyvals...)
 }
 
 // Debug with caller for this log, even if disabled globaly
 func DebugC(msg any, keyvals ...any) {
-	LogC(DebugLevel, msg, keyvals...)
+	logC(true, DebugLevel, msg, keyvals...)
 }
 
 // Info logs an info message.
 func Info(msg any, keyvals ...any) {
-	Log(InfoLevel, msg, keyvals...)
+	llog(true, InfoLevel, msg, keyvals...)
 }
 
 func InfoC(msg any, keyvals ...any) {
-	LogC(InfoLevel, msg, keyvals...)
+	logC(true, InfoLevel, msg, keyvals...)
 }
 
 // Warn logs a warning message.
 func Warn(msg any, keyvals ...any) {
-	Log(WarnLevel, msg, keyvals...)
+	llog(true, WarnLevel, msg, keyvals...)
 }
 
 func WarnC(msg any, keyvals ...any) {
-	LogC(WarnLevel, msg, keyvals...)
+	logC(true, WarnLevel, msg, keyvals...)
 }
 
 // Error logs an error message.
 func Error(msg any, keyvals ...any) {
-	Log(ErrorLevel, msg, keyvals...)
+	llog(true, ErrorLevel, msg, keyvals...)
 }
 
 func ErrorC(msg any, keyvals ...any) {
-	LogC(ErrorLevel, msg, keyvals...)
+	logC(true, ErrorLevel, msg, keyvals...)
 }
 
 func CheckError(err error) bool {
@@ -224,52 +202,47 @@ func CheckError(err error) bool {
 
 // Fatal logs a fatal message and exit.
 func Fatal(msg any, keyvals ...any) {
-	Log(FatalLevel, msg, keyvals...)
+	llog(true, FatalLevel, msg, keyvals...)
 	os.Exit(1)
 }
 
 func FatalC(msg any, keyvals ...any) {
-	LogC(FatalLevel, msg, keyvals...)
+	logC(true, FatalLevel, msg, keyvals...)
 	os.Exit(1)
 }
 
 // Print logs a message with no level.
 func Print(msg any, keyvals ...any) {
-	Log(NoLevel, msg, keyvals...)
+	llog(true, NoLevel, msg, keyvals...)
 }
 
 func PrintC(msg any, keyvals ...any) {
-	LogC(NoLevel, msg, keyvals...)
-}
-
-// Logf logs a message with formatting and level.
-func Logf(level Level, format string, args ...any) {
-	Log(level, fmt.Sprintf(format, args...))
+	logC(true, NoLevel, msg, keyvals...)
 }
 
 // Debugf logs a debug message with formatting.
 func Debugf(format string, args ...any) {
-	Log(DebugLevel, fmt.Sprintf(format, args...))
+	llog(true, DebugLevel, fmt.Sprintf(format, args...))
 }
 
 // Infof logs an info message with formatting.
 func Infof(format string, args ...any) {
-	Log(InfoLevel, fmt.Sprintf(format, args...))
+	llog(true, InfoLevel, fmt.Sprintf(format, args...))
 }
 
 // Warnf logs a warning message with formatting.
 func Warnf(format string, args ...any) {
-	Log(WarnLevel, fmt.Sprintf(format, args...))
+	llog(true, WarnLevel, fmt.Sprintf(format, args...))
 }
 
 // Errorf logs an error message with formatting.
 func Errorf(format string, args ...any) {
-	Log(ErrorLevel, fmt.Sprintf(format, args...))
+	llog(true, ErrorLevel, fmt.Sprintf(format, args...))
 }
 
 // Fatalf logs a fatal message with formatting and exit.
 func Fatalf(format string, args ...any) {
-	Log(FatalLevel, fmt.Sprintf(format, args...))
+	llog(true, FatalLevel, fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 

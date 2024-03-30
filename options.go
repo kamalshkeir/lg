@@ -58,4 +58,5 @@ type Options struct {
 	Fields []any
 	// Formatter is the formatter for the logger. The default is TextFormatter.
 	Formatter Formatter
+	isdef     bool
 }

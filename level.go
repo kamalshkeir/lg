@@ -25,6 +25,14 @@ const (
 	NoLevel Level = math.MaxInt32
 )
 
+var levelColors = map[string]string{
+	"debug": "bl",
+	"info":  "gr",
+	"warn":  "yl",
+	"error": "rd",
+	"fatal": "mg",
+}
+
 // String returns the string representation of the level.
 func (l Level) String() string {
 	switch l {

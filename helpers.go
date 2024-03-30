@@ -10,8 +10,7 @@ import (
 func (l *Logger) handle(level Level, ts time.Time, frames []runtime.Frame, msg any, keyvals ...any) {
 	var kvs []any
 
-	_, ok := l.styles.Levels[level]
-	if ok {
+	if level != NoLevel {
 		kvs = append(kvs, LevelKey, level)
 	}
 
@@ -65,8 +64,7 @@ func (l *Logger) handle(level Level, ts time.Time, frames []runtime.Frame, msg a
 func (l *Logger) handleC(level Level, ts time.Time, frames []runtime.Frame, msg any, keyvals ...any) {
 	var kvs []any
 
-	_, ok := l.styles.Levels[level]
-	if ok {
+	if level != NoLevel {
 		kvs = append(kvs, LevelKey, level)
 	}
 

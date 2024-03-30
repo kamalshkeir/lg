@@ -15,21 +15,13 @@ const (
 	indentSeparator = "  │ "
 )
 
-func (l *Logger) writeIndent(w io.Writer, str string, indent string, newline bool, key string) {
-	st := l.styles
-
-	// kindly borrowed from hclog
+func (l *Logger) writeIndent(w io.Writer, str string, indent string, newline bool) {
 	for {
 		nl := strings.IndexByte(str, '\n')
 		if nl == -1 {
 			if str != "" {
 				_, _ = w.Write([]byte(indent))
 				val := escapeStringForOutput(str, false)
-				if valueStyle, ok := st.Values[key]; ok {
-					val = valueStyle.Renderer(l.re).Render(val)
-				} else {
-					val = st.Value.Renderer(l.re).Render(val)
-				}
 				_, _ = w.Write([]byte(val))
 				if newline {
 					_, _ = w.Write([]byte{'\n'})
@@ -40,7 +32,6 @@ func (l *Logger) writeIndent(w io.Writer, str string, indent string, newline boo
 
 		_, _ = w.Write([]byte(indent))
 		val := escapeStringForOutput(str[:nl], false)
-		val = st.Value.Renderer(l.re).Render(val)
 		_, _ = w.Write([]byte(val))
 		_, _ = w.Write([]byte{'\n'})
 		str = str[nl+1:]
@@ -164,32 +155,66 @@ func writeSpace(w io.Writer, first bool) {
 	}
 }
 
+func Render(str, color string) string {
+	switch color {
+	case "gy", "gray":
+		return fmt.Sprintf(GRAY, str)
+	case "gr", "green":
+		return fmt.Sprintf(GREEN, str)
+	case "bl", "blue":
+		return fmt.Sprintf(BLUE, str)
+	case "rd", "red":
+		return fmt.Sprintf(RED, str)
+	case "mg", "magenta":
+		return fmt.Sprintf(MAGENTA, str)
+	case "aq", "aqua":
+		return fmt.Sprintf(MAGENTA, str)
+	default:
+		return str
+	}
+}
+
+func toCapLevel(level string) string {
+	switch level {
+	case "debug":
+		return "DEBUG"
+	case "info":
+		return "INFO"
+	case "warn":
+		return "WARN"
+	case "error":
+		return "ERROR"
+	case "fatal":
+		return "FATAL"
+	default:
+		return level
+	}
+}
+
 func (l *Logger) textFormatter(keyvals ...any) {
-	st := l.styles
 	lenKeyvals := len(keyvals)
 
 	for i := 0; i < lenKeyvals; i += 2 {
 		firstKey := i == 0
 		moreKeys := i < lenKeyvals-2
-
 		switch keyvals[i] {
 		case TimestampKey:
 			if t, ok := keyvals[i+1].(time.Time); ok {
 				ts := t.Format(l.timeFormat)
-				ts = st.Caller.Renderer(l.re).Render(TimestampKey+"=") + ts
+				ts = Render(TimestampKey+"=", "gy") + ts
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(ts)
 			}
 		case LevelKey:
 			if level, ok := keyvals[i+1].(Level); ok {
-				var lvl string
-				lvlStyle, ok := st.Levels[level]
-				if !ok {
-					continue
-				}
-
-				lvl = lvlStyle.Renderer(l.re).String()
-				if lvl != "" {
+				lvl := level.String()
+				if len(lvl) > 0 {
+					cc := levelColors[lvl]
+					lvl = toCapLevel(lvl)
+					if len(lvl) > 3 {
+						lvl = lvl[:4]
+					}
+					lvl = Render(lvl, cc)
 					writeSpace(&l.b, firstKey)
 					l.b.WriteString(lvl)
 				}
@@ -197,29 +222,29 @@ func (l *Logger) textFormatter(keyvals ...any) {
 		case CallerKey:
 			if caller, ok := keyvals[i+1].(string); ok {
 				caller = "[" + caller + "]"
-				caller = st.Caller.Renderer(l.re).Render(caller)
+				caller = Render(caller, "gy")
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(caller)
 			}
 		case PrefixKey:
 			if prefix, ok := keyvals[i+1].(string); ok {
-				prefix = st.Prefix.Renderer(l.re).Render(prefix + ":")
+				prefix = Render(prefix+":", "gy")
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(prefix)
 			}
 		case MessageKey:
 			if msg := keyvals[i+1]; msg != nil {
 				m := fmt.Sprint(msg)
-				m = st.Message.Renderer(l.re).Render(m)
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(m)
 			}
 		default:
 			sep := separator
 			indentSep := indentSeparator
-			sep = st.Separator.Renderer(l.re).Render(sep)
-			indentSep = st.Separator.Renderer(l.re).Render(indentSep)
+			sep = Render(sep, "gy")
+			// indentSep = st.Separator.Renderer(l.re).Render(indentSep)
 			key := fmt.Sprint(keyvals[i])
+			key = Render(key, "gy")
 			val := fmt.Sprintf("%+v", keyvals[i+1])
 			raw := val == ""
 			if raw {
@@ -227,16 +252,6 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			}
 			if key == "" {
 				continue
-			}
-			actualKey := key
-			valueStyle := st.Value
-			if vs, ok := st.Values[actualKey]; ok {
-				valueStyle = vs
-			}
-			if keyStyle, ok := st.Keys[key]; ok {
-				key = keyStyle.Renderer(l.re).Render(key)
-			} else {
-				key = st.Key.Renderer(l.re).Render(key)
 			}
 
 			// Values may contain multiple lines, and that format
@@ -250,15 +265,14 @@ func (l *Logger) textFormatter(keyvals ...any) {
 				l.b.WriteString("\n  ")
 				l.b.WriteString(key)
 				l.b.WriteString(sep + "\n")
-				l.writeIndent(&l.b, val, indentSep, moreKeys, actualKey)
+				l.writeIndent(&l.b, val, indentSep, moreKeys)
 			} else if !raw && needsQuoting(val) {
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(key)
 				l.b.WriteString(sep)
-				l.b.WriteString(valueStyle.Renderer(l.re).Render(fmt.Sprintf(`"%s"`,
-					escapeStringForOutput(val, true))))
+				l.b.WriteString(fmt.Sprintf(`"%s"`,
+					escapeStringForOutput(val, true)))
 			} else {
-				val = valueStyle.Renderer(l.re).Render(val)
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(key)
 				l.b.WriteString(sep)
