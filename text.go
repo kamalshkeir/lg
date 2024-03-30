@@ -22,6 +22,8 @@ func Color(color string) string {
 		return GRAY
 	case "gr", "green":
 		return GREEN
+	case "yl", "yellow":
+		return YELLOW
 	case "bl", "blue":
 		return BLUE
 	case "rd", "red":
@@ -31,6 +33,7 @@ func Color(color string) string {
 	case "aq", "aqua":
 		return AQUA
 	default:
+		ErrorC("color not found")
 		return ""
 	}
 }
@@ -62,7 +65,6 @@ func (l *Logger) textFormatter(keyvals ...any) {
 	args := make([]any, 0, len(keyvals)/2)
 	for i := 0; i < lenKeyvals; i += 2 {
 		firstKey := i == 0
-		// moreKeys := i < lenKeyvals-2
 		switch keyvals[i] {
 		case TimestampKey:
 			if t, ok := keyvals[i+1].(time.Time); ok {
@@ -154,7 +156,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			"log": pubMessage,
 		})
 	}
-
+	defer l.b.Reset()
 	_, err := fmt.Fprintf(l.w, l.b.String()+"\n", args...)
 	l.CheckError(err)
 }

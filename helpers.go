@@ -73,6 +73,8 @@ func (l *Logger) handleC(level Level, ts time.Time, frames []runtime.Frame, msg 
 			caller := l.callerFormatter(file, line, fn)
 			kvs = append(kvs, CallerKey, caller)
 		}
+	} else {
+		l.ErrorC("no frames")
 	}
 
 	if l.prefix != "" {
