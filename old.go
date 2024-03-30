@@ -46,5 +46,5 @@ func Printfs(pattern string, anything ...interface{}) {
 	if colorUsed {
 		msg = "\033[1;" + colorCode + "m" + msg + "\033[0m"
 	}
-	fmt.Fprint(defaultLogger.w, msg)
+	fmt.Fprint(Default().w, msg)
 }
