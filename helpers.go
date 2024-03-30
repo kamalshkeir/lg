@@ -53,12 +53,11 @@ func (l *Logger) handle(level Level, ts time.Time, frames []runtime.Frame, msg a
 	switch l.formatter {
 	case JSONFormatter:
 		l.jsonFormatter(kvs...)
+		// WriteTo will reset the buffer
+		l.b.WriteTo(l.w) //nolint: errcheck
 	default:
 		l.textFormatter(kvs...)
 	}
-
-	// WriteTo will reset the buffer
-	l.b.WriteTo(l.w) //nolint: errcheck
 }
 
 func (l *Logger) handleC(level Level, ts time.Time, frames []runtime.Frame, msg any, keyvals ...any) {
@@ -107,12 +106,11 @@ func (l *Logger) handleC(level Level, ts time.Time, frames []runtime.Frame, msg 
 	switch l.formatter {
 	case JSONFormatter:
 		l.jsonFormatter(kvs...)
+		// WriteTo will reset the buffer
+		l.b.WriteTo(l.w) //nolint: errcheck
 	default:
 		l.textFormatter(kvs...)
 	}
-
-	// WriteTo will reset the buffer
-	l.b.WriteTo(l.w) //nolint: errcheck
 }
 
 func (l *Logger) helper(skip int) {

@@ -42,7 +42,7 @@ func Printfs(pattern string, anything ...interface{}) {
 		pfx := ""
 		switch colorCode {
 		case "30":
-			pfx = "GRAY"
+			pfx = "COMM "
 		case "31":
 			pfx = "ERRO "
 		case "32":
