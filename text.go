@@ -193,7 +193,7 @@ func toCapLevel(level string) string {
 
 func (l *Logger) textFormatter(keyvals ...any) {
 	lenKeyvals := len(keyvals)
-
+	pubMessage := ""
 	for i := 0; i < lenKeyvals; i += 2 {
 		firstKey := i == 0
 		moreKeys := i < lenKeyvals-2
@@ -201,6 +201,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 		case TimestampKey:
 			if t, ok := keyvals[i+1].(time.Time); ok {
 				ts := t.Format(l.timeFormat)
+				pubMessage += "  " + TimestampKey + "=" + ts
 				ts = Render(TimestampKey+"=", "gy") + ts
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(ts)
@@ -214,6 +215,11 @@ func (l *Logger) textFormatter(keyvals ...any) {
 					if len(lvl) > 3 {
 						lvl = lvl[:4]
 					}
+					if pubMessage == "" {
+						pubMessage += lvl
+					} else {
+						pubMessage += " " + lvl
+					}
 					lvl = Render(lvl, cc)
 					writeSpace(&l.b, firstKey)
 					l.b.WriteString(lvl)
@@ -222,12 +228,18 @@ func (l *Logger) textFormatter(keyvals ...any) {
 		case CallerKey:
 			if caller, ok := keyvals[i+1].(string); ok {
 				caller = "[" + caller + "]"
+				if pubMessage == "" {
+					pubMessage += caller
+				} else {
+					pubMessage += " " + caller
+				}
 				caller = Render(caller, "gy")
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(caller)
 			}
 		case PrefixKey:
 			if prefix, ok := keyvals[i+1].(string); ok {
+				pubMessage += " " + prefix + ":"
 				prefix = Render(prefix+":", "gy")
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(prefix)
@@ -235,6 +247,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 		case MessageKey:
 			if msg := keyvals[i+1]; msg != nil {
 				m := fmt.Sprint(msg)
+				pubMessage += " " + m
 				writeSpace(&l.b, firstKey)
 				l.b.WriteString(m)
 			}
@@ -246,6 +259,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			key := fmt.Sprint(keyvals[i])
 			key = Render(key, "gy")
 			val := fmt.Sprintf("%+v", keyvals[i+1])
+			pubMessage += " " + key + "=" + val
 			raw := val == ""
 			if raw {
 				val = `""`

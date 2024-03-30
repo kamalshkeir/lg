@@ -39,8 +39,23 @@ func Printfs(pattern string, anything ...interface{}) {
 	msg := fmt.Sprintf(pattern, anything...)
 	ss.Add(msg)
 	if pub != nil {
+		pfx := ""
+		switch colorCode {
+		case "30":
+			pfx = "GRAY"
+		case "31":
+			pfx = "ERRO "
+		case "32":
+			pfx = "INFO "
+		case "33":
+			pfx = "WARN "
+		case "34":
+			pfx = "DEBU "
+		case "35":
+			pfx = "FATA "
+		}
 		pub.Publish(topicPub, map[string]any{
-			"log": msg,
+			"log": pfx + msg,
 		})
 	}
 	if colorUsed {
