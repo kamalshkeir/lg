@@ -56,10 +56,6 @@ func toCapLevel(level string) string {
 }
 
 func (l *Logger) textFormatter(keyvals ...any) {
-	if len(keyvals)%2 != 0 {
-		l.ErrorC("keyvals not even")
-		return
-	}
 	lenKeyvals := len(keyvals)
 	pubMessage := ""
 	args := make([]any, 0, len(keyvals)/2)
@@ -123,7 +119,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 					writeSpace(&l.b, firstKey)
 					l.b.WriteString(v)
 				} else {
-					l.ErrorC("msg should be of type string", "got", msg)
+					fmt.Println("expect msg to be string, got:", msg)
 					return
 				}
 			}
@@ -131,7 +127,7 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			sep := separator
 			key := keyvals[i]
 			if vStr, ok := key.(string); !ok {
-				l.ErrorC("expected key to be string", "key", keyvals[i])
+				fmt.Printf("log error: textFormatter, expect key to be string, got %v\n", key)
 				return
 			} else {
 				key = vStr + sep
