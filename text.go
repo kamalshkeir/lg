@@ -295,10 +295,9 @@ func (l *Logger) textFormatter(keyvals ...any) {
 		}
 	}
 	if pub != nil {
-		msg := l.b.String()
-		ss.Add(msg)
+		ss.Add(pubMessage)
 		pub.Publish(topicPub, map[string]any{
-			"log": msg,
+			"log": pubMessage,
 		})
 	}
 	// Add a newline to the end of the log message.
