@@ -257,9 +257,9 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			sep = Render(sep, "gy")
 			// indentSep = st.Separator.Renderer(l.re).Render(indentSep)
 			key := fmt.Sprint(keyvals[i])
-			key = Render(key, "gy")
 			val := fmt.Sprintf("%+v", keyvals[i+1])
 			pubMessage += " " + key + "=" + val
+			key = Render(key, "gy")
 			raw := val == ""
 			if raw {
 				val = `""`
