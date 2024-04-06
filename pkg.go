@@ -194,7 +194,7 @@ func ErrorC(msg any, keyvals ...any) {
 
 func CheckError(err error) bool {
 	if err != nil {
-		ErrorC("", "err", err)
+		logC(true, ErrorLevel, "", "err", err)
 		return true
 	}
 	return false
