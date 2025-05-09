@@ -37,8 +37,10 @@ func Printfs(pattern string, anything ...interface{}) {
 		pattern = pattern[2:]
 	}
 	msg := fmt.Sprintf(pattern, anything...)
-	ss.Add(msg)
-	if pub != nil {
+	if saveMem {
+		ss.Add(msg)
+	}
+	if usePub && pub != nil {
 		pfx := ""
 		switch colorCode {
 		case "30":

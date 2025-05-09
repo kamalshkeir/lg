@@ -54,10 +54,12 @@ func (l *Logger) jsonFormatter(keyvals ...any) {
 			m[key] = val
 		}
 	}
-
-	if pub != nil {
-		msg := fmt.Sprint(m)
+	msg := fmt.Sprint(m)
+	if saveMem {
 		ss.Add(msg)
+	}
+
+	if usePub && pub != nil {
 		pub.Publish(topicPub, map[string]any{
 			"log": msg,
 		})

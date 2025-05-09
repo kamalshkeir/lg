@@ -147,8 +147,10 @@ func (l *Logger) textFormatter(keyvals ...any) {
 			}
 		}
 	}
-	if pub != nil {
+	if saveMem {
 		ss.Add(pubMessage)
+	}
+	if usePub && pub != nil {
 		pub.Publish(topicPub, map[string]any{
 			"log": pubMessage,
 		})

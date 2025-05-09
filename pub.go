@@ -4,6 +4,8 @@ var (
 	ss       = NewLimitedSlice[string](20)
 	pub      Publisher
 	topicPub = ""
+	usePub   = false
+	saveMem  = true
 )
 
 type Publisher interface {
@@ -11,12 +13,12 @@ type Publisher interface {
 }
 
 func SaveToMem(nbLogs int) {
-	if ss == nil {
-		ss = NewLimitedSlice[string](nbLogs)
-	}
+	saveMem = true
+	ss = NewLimitedSlice[string](nbLogs)
 }
 
 func UsePublisher(publisher Publisher, topic string) {
+	usePub = true
 	pub = publisher
 	topicPub = topic
 }
